@@ -1,4 +1,5 @@
-import type { CompletionItemProvider, Position, Range, TextDocument } from 'vscode'
+import type { Extractor } from '#types/extractor'
+import type { CompletionItemProvider, Position, TextDocument } from 'vscode'
 import { config } from '#state'
 import { getPackageInfo } from '#utils/npm'
 import { CompletionItem, CompletionItemKind } from 'vscode'
@@ -16,12 +17,20 @@ function getPrefix(v: string) {
 
 export const triggerChars = ['.', '^', '~', ...Array.from({ length: 10 }).map((_, i) => `${i}`)]
 
-export abstract class BaseCompletionItemProvider<T> implements CompletionItemProvider {
-  abstract getDepInfo(document: TextDocument, position: Position): { node: T, name: string, version: string } | undefined
-  abstract getReplacingRange(document: TextDocument, node: T): Range
+export class VersionCompletionItemProvider<T extends Extractor<any>> implements CompletionItemProvider {
+  extractor: T
+
+  constructor(extractor: T) {
+    this.extractor = extractor
+  }
 
   async provideCompletionItems(document: TextDocument, position: Position) {
-    const info = this.getDepInfo(document, position)
+    const root = this.extractor.parse(document)
+    if (!root)
+      return
+
+    const offset = document.offsetAt(position)
+    const info = this.extractor.getDependencyInfoByOffset(root, offset)
     if (!info)
       return
 
@@ -44,7 +53,7 @@ export abstract class BaseCompletionItemProvider<T> implements CompletionItemPro
       const text = `${prefix}${version}`
       const item = new CompletionItem(text, CompletionItemKind.Value)
 
-      item.range = this.getReplacingRange(document, node)
+      item.range = this.extractor.getNodeRange(document, node)
       item.insertText = text
       if (tag)
         item.detail = tag
