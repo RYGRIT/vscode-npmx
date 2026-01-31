@@ -7,7 +7,7 @@ import { getPackageInfo } from '#utils/npm'
 import { useActiveTextEditor, useDocumentText, watch } from 'reactive-vscode'
 import { languages } from 'vscode'
 import { displayName } from '../../generated-meta'
-import { checkDeprecations } from './rules/deprecation'
+import { checkDeprecation } from './rules/deprecation'
 
 export interface NodeDiagnosticInfo extends Pick<Diagnostic, 'message' | 'severity'> {
   node: ValidNode
@@ -15,7 +15,7 @@ export interface NodeDiagnosticInfo extends Pick<Diagnostic, 'message' | 'severi
 export type DiagnosticRule = (dep: DependencyInfo, pkg: ResolvedPackument) => NodeDiagnosticInfo | undefined
 
 const rules: DiagnosticRule[] = [
-  checkDeprecations,
+  checkDeprecation,
 ]
 
 export function registerDiagnosticCollection(mapping: Record<string, Extractor | undefined>) {

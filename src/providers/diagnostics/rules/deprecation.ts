@@ -2,7 +2,7 @@ import type { DiagnosticRule } from '..'
 import { extractVersion } from '#utils/version'
 import { DiagnosticSeverity } from 'vscode'
 
-export const checkDeprecations: DiagnosticRule = (dep, pkg) => {
+export const checkDeprecation: DiagnosticRule = (dep, pkg) => {
   const exactVersion = extractVersion(dep.version)
   const versionInfo = pkg.versions[exactVersion]
 
