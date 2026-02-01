@@ -13,7 +13,7 @@ const DEPENDENCY_SECTIONS = [
   'optionalDependencies',
 ]
 
-export class JsonExtractor implements Extractor<Node> {
+export class PackageJsonExtractor implements Extractor<Node> {
   parse = createCachedParse(parseTree)
 
   getNodeRange(doc: TextDocument, node: Node) {

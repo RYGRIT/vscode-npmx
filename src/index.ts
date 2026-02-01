@@ -7,8 +7,8 @@ import {
 } from '#constants'
 import { defineExtension } from 'reactive-vscode'
 import { languages } from 'vscode'
-import { JsonExtractor } from './extractors/json'
-import { YamlExtractor } from './extractors/yaml'
+import { PackageJsonExtractor } from './extractors/package-json'
+import { PnpmWorkspaceYamlExtractor } from './extractors/pnpm-workspace-yaml'
 import { displayName, version } from './generated-meta'
 import { VersionCompletionItemProvider } from './providers/completion-item/version'
 import { registerDiagnosticCollection } from './providers/diagnostics'
@@ -18,17 +18,17 @@ import { config, logger } from './state'
 export const { activate, deactivate } = defineExtension((ctx) => {
   logger.info(`${displayName} Activated, v${version}`)
 
-  const jsonExtractor = new JsonExtractor()
-  const yamlExtractor = new YamlExtractor()
+  const packageJsonExtractor = new PackageJsonExtractor()
+  const pnpmWorkspaceYamlExtractor = new PnpmWorkspaceYamlExtractor()
 
   ctx.subscriptions.push(
     languages.registerHoverProvider(
       { pattern: PACKAGE_JSON_PATTERN },
-      new NpmxHoverProvider(jsonExtractor),
+      new NpmxHoverProvider(packageJsonExtractor),
     ),
     languages.registerHoverProvider(
       { pattern: PNPM_WORKSPACE_PATTERN },
-      new NpmxHoverProvider(yamlExtractor),
+      new NpmxHoverProvider(pnpmWorkspaceYamlExtractor),
     ),
   )
 
@@ -36,19 +36,19 @@ export const { activate, deactivate } = defineExtension((ctx) => {
     ctx.subscriptions.push(
       languages.registerCompletionItemProvider(
         { pattern: PACKAGE_JSON_PATTERN },
-        new VersionCompletionItemProvider(jsonExtractor),
+        new VersionCompletionItemProvider(packageJsonExtractor),
         ...VERSION_TRIGGER_CHARACTERS,
       ),
       languages.registerCompletionItemProvider(
         { pattern: PNPM_WORKSPACE_PATTERN },
-        new VersionCompletionItemProvider(yamlExtractor),
+        new VersionCompletionItemProvider(pnpmWorkspaceYamlExtractor),
         ...VERSION_TRIGGER_CHARACTERS,
       ),
     )
   }
 
   registerDiagnosticCollection({
-    [PACKAGE_JSON_BASENAME]: jsonExtractor,
-    [PNPM_WORKSPACE_BASENAME]: yamlExtractor,
+    [PACKAGE_JSON_BASENAME]: packageJsonExtractor,
+    [PNPM_WORKSPACE_BASENAME]: pnpmWorkspaceYamlExtractor,
   })
 })

@@ -13,7 +13,7 @@ type CatalogEntry = Pair<Scalar<string>, Scalar<string>>
 
 type CatalogEntryVisitor = (catalog: CatalogEntry) => boolean | void
 
-export class YamlExtractor implements Extractor<Node> {
+export class PnpmWorkspaceYamlExtractor implements Extractor<Node> {
   parse = createCachedParse((text) => parseDocument(text).contents)
 
   getNodeRange(doc: TextDocument, node: Node) {
