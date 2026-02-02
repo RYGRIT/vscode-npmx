@@ -1,9 +1,9 @@
 import type { Packument, PackumentVersion } from '@npm/types'
+import { NPM_REGISTRY } from '#constants'
 import { logger } from '#state'
+import { encodePackageName } from '#utils/package'
 import { ofetch } from 'ofetch'
-import { memoize } from './memoize'
-
-const NPM_REGISTRY = 'https://registry.npmjs.org'
+import { memoize } from '../memoize'
 
 interface ResolvedPackumentVersion extends Pick<PackumentVersion, 'version'> {
   tag?: string
@@ -13,17 +13,6 @@ interface ResolvedPackumentVersion extends Pick<PackumentVersion, 'version'> {
 
 export interface ResolvedPackument {
   versions: Record<string, ResolvedPackumentVersion>
-}
-
-/**
- * Encode a package name for use in npm registry URLs.
- * Handles scoped packages (e.g., @scope/name -> @scope%2Fname).
- */
-export function encodePackageName(name: string): string {
-  if (name.startsWith('@')) {
-    return `@${encodeURIComponent(name.slice(1))}`
-  }
-  return encodeURIComponent(name)
 }
 
 export const getPackageInfo = memoize<string, Promise<ResolvedPackument>>(async (name) => {
