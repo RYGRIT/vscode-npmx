@@ -8,6 +8,7 @@ import {
 } from '#constants'
 import { defineExtension, useCommands, watchEffect } from 'reactive-vscode'
 import { Disposable, env, languages, Uri } from 'vscode'
+import { openFileInNpmx } from './commands/open-file-in-npmx'
 import { PackageJsonExtractor } from './extractors/package-json'
 import { PnpmWorkspaceYamlExtractor } from './extractors/pnpm-workspace-yaml'
 import { commands, displayName, version } from './generated-meta'
@@ -69,5 +70,6 @@ export const { activate, deactivate } = defineExtension(() => {
     [commands.openInBrowser]: () => {
       env.openExternal(Uri.parse(NPMX_DEV))
     },
+    [commands.openFileInNpmx]: openFileInNpmx,
   })
 })
