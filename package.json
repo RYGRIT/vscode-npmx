@@ -12,7 +12,7 @@
     "url": "https://github.com/9romise"
   },
   "license": "MIT",
-  "homepage": "https://github.com/npmx-dev/vscode-npmx#readme",
+  "homepage": "https://docs.npmx.dev/guide/vscode-extension",
   "repository": {
     "type": "git",
     "url": "git+https://github.com/npmx-dev/vscode-npmx.git"
