@@ -2,12 +2,12 @@ import type { DependencyInfo, Extractor, ValidNode } from '#types/extractor'
 import type { PackageInfo } from '#utils/api/package'
 import type { Awaitable } from 'reactive-vscode'
 import type { Diagnostic, TextDocument } from 'vscode'
-import { basename } from 'node:path'
 import { config, logger } from '#state'
 import { getPackageInfo } from '#utils/api/package'
 import { debounce } from 'perfect-debounce'
 import { computed, useActiveTextEditor, useDocumentText, watch } from 'reactive-vscode'
 import { languages } from 'vscode'
+import { Utils } from 'vscode-uri'
 import { displayName } from '../../generated-meta'
 import { checkDeprecation } from './rules/deprecation'
 import { checkReplacement } from './rules/replacement'
@@ -83,7 +83,7 @@ export function registerDiagnosticCollection(mapping: Record<string, Extractor |
       return
 
     const document = editor.document
-    const filename = basename(document.fileName)
+    const filename = Utils.basename(document.uri)
     const extractor = mapping[filename]
 
     if (extractor)
