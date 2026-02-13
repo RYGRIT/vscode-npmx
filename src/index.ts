@@ -1,4 +1,4 @@
-import type { Range, Uri } from 'vscode'
+import type { ExtensionContext, Range, Uri } from 'vscode'
 import {
   PACKAGE_JSON_BASENAME,
   PACKAGE_JSON_PATTERN,
@@ -8,7 +8,7 @@ import {
 } from '#constants'
 import { debounce } from 'perfect-debounce'
 import { defineExtension, useCommands, watchEffect } from 'reactive-vscode'
-import { CodeActionKind, Disposable, languages, commands as vscodeCommands, workspace, WorkspaceEdit } from 'vscode'
+import { CodeActionKind, Disposable, languages, commands as vscodeCommands, window, workspace, WorkspaceEdit } from 'vscode'
 import { openFileInNpmx } from './commands/open-file-in-npmx'
 import { openInBrowser } from './commands/open-in-browser'
 import { PackageJsonExtractor } from './extractors/package-json'
@@ -18,10 +18,11 @@ import { UpgradeProvider } from './providers/code-actions/upgrade'
 import { VersionCodeLensProvider } from './providers/code-lens/version'
 import { VersionCompletionItemProvider } from './providers/completion-item/version'
 import { registerDiagnosticCollection } from './providers/diagnostics'
+import { UpgradeGutterProvider } from './providers/gutter/upgrade'
 import { NpmxHoverProvider } from './providers/hover/npmx'
 import { config, logger } from './state'
 
-export const { activate, deactivate } = defineExtension(() => {
+export const { activate, deactivate } = defineExtension((context: ExtensionContext) => {
   logger.info(`${displayName} Activated, v${version}`)
 
   const packageJsonExtractor = new PackageJsonExtractor()
@@ -92,6 +93,49 @@ export const { activate, deactivate } = defineExtension(() => {
         { pattern: PNPM_WORKSPACE_PATTERN },
         new VersionCodeLensProvider(pnpmWorkspaceYamlExtractor),
       ),
+    ]
+
+    onCleanup(() => Disposable.from(...disposables).dispose())
+  })
+
+  watchEffect((onCleanup) => {
+    if (!config.gutterIcon.enabled)
+      return
+
+    const packageJsonGutter = new UpgradeGutterProvider(packageJsonExtractor, context.extensionUri)
+    const pnpmWorkspaceGutter = new UpgradeGutterProvider(pnpmWorkspaceYamlExtractor, context.extensionUri)
+
+    function getProvider(document: { uri: { fsPath: string } }) {
+      const fsPath = document.uri.fsPath
+      if (fsPath.endsWith(PACKAGE_JSON_BASENAME))
+        return packageJsonGutter
+      if (fsPath.endsWith(PNPM_WORKSPACE_BASENAME))
+        return pnpmWorkspaceGutter
+      return null
+    }
+
+    function updateEditor(editor: typeof window.activeTextEditor) {
+      if (!editor)
+        return
+      const provider = getProvider(editor.document)
+      provider?.update(editor)
+    }
+
+    updateEditor(window.activeTextEditor)
+
+    const disposables = [
+      window.onDidChangeActiveTextEditor((editor) => {
+        updateEditor(editor)
+      }),
+      workspace.onDidChangeTextDocument((e) => {
+        const editor = window.activeTextEditor
+        if (editor && editor.document === e.document) {
+          const provider = getProvider(e.document)
+          provider?.update(editor)
+        }
+      }),
+      packageJsonGutter,
+      pnpmWorkspaceGutter,
     ]
 
     onCleanup(() => Disposable.from(...disposables).dispose())

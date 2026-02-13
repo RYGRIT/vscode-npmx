@@ -91,8 +91,13 @@
         },
         "npmx.versionLens.enabled": {
           "type": "boolean",
-          "default": true,
+          "default": false,
           "description": "Show version lens (CodeLens) for package dependencies"
+        },
+        "npmx.gutterIcon.enabled": {
+          "type": "boolean",
+          "default": true,
+          "description": "Show gutter icon when a newer version of a package is available"
         }
       }
     },
