@@ -1,7 +1,8 @@
-import { beforeEach, describe, expect, it, vi } from 'vitest'
+import { describe, expect, it } from 'vitest'
 import { Uri } from 'vscode'
-import { findNearestFile, walkAncestors } from '../src/utils/resolve'
-import { mockFileSystem } from './__mocks__/filesystem'
+import { findNearestFile, walkAncestors } from '../../src/utils/resolve'
+
+const root = Uri.file(process.cwd())
 
 describe('walkAncestors', () => {
   it('should yield all ancestor directories', () => {
@@ -34,44 +35,26 @@ describe('walkAncestors', () => {
 })
 
 describe('findNearestFile', () => {
-  beforeEach(() => {
-    vi.resetAllMocks()
-  })
-
   it('should find a file in a parent directory', async () => {
-    mockFileSystem({
-      '/a/b/target.txt': '',
-    })
-
-    const result = await findNearestFile('target.txt', Uri.file('/a/b/c/d'))
+    const result = await findNearestFile('package.json', Uri.joinPath(root, 'src/utils'))
     expect(result).toBeDefined()
-    expect(result!.path).toBe('/a/b/target.txt')
+    expect(result!.fsPath).toBe(Uri.joinPath(root, 'package.json').fsPath)
   })
 
   it('should return the closest match', async () => {
-    mockFileSystem({
-      '/a/target.txt': '',
-      '/a/b/c/target.txt': '',
-    })
-
-    const result = await findNearestFile('target.txt', Uri.file('/a/b/c/d'))
+    const result = await findNearestFile('package.json', Uri.joinPath(root, 'playground'))
     expect(result).toBeDefined()
-    expect(result!.path).toBe('/a/b/c/target.txt')
+    expect(result!.fsPath).toBe(Uri.joinPath(root, 'playground/package.json').fsPath)
   })
 
   it('should return undefined when file is not found', async () => {
-    mockFileSystem({})
-
-    const result = await findNearestFile('target.txt', Uri.file('/a/b/c'))
+    const result = await findNearestFile('__nonexistent_file__', Uri.joinPath(root, 'src'))
     expect(result).toBeUndefined()
   })
 
   it('should respect shouldStop', async () => {
-    mockFileSystem({
-      '/a/target.txt': '',
-    })
-
-    const result = await findNearestFile('target.txt', Uri.file('/a/b/c'), (u) => u.path === '/a/b')
+    const stop = Uri.joinPath(root, 'src')
+    const result = await findNearestFile('package.json', Uri.joinPath(root, 'src/utils'), (u) => u.fsPath === stop.fsPath)
     expect(result).toBeUndefined()
   })
 })

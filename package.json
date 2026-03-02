@@ -3,9 +3,9 @@
   "name": "vscode-npmx",
   "displayName": "npmx",
   "type": "module",
-  "version": "0.4.0",
-  "packageManager": "pnpm@10.29.3",
-  "description": "A better browser for the npm registry",
+  "version": "0.5.0",
+  "packageManager": "pnpm@10.30.3",
+  "description": "Enhance your npm package workflow in VS Code",
   "author": {
     "name": "Vida Xie",
     "email": "vida_2020@163.com",
@@ -27,6 +27,10 @@
     "Other"
   ],
   "main": "./dist/index.mjs",
+  "browser": "./dist/index.mjs",
+  "extensionKind": [
+    "workspace"
+  ],
   "icon": "res/logo.png",
   "files": [
     "LICENSE.md",
@@ -88,6 +92,16 @@
           "type": "boolean",
           "default": true,
           "description": "Show warnings for packages with known vulnerabilities"
+        },
+        "npmx.diagnostics.distTag": {
+          "type": "boolean",
+          "default": true,
+          "description": "Show warnings when a dependency uses a dist tag"
+        },
+        "npmx.diagnostics.engineMismatch": {
+          "type": "boolean",
+          "default": true,
+          "description": "Show warnings when dependency engines mismatch with the current package"
         },
         "npmx.versionLens.enabled": {
           "type": "boolean",
@@ -156,34 +170,35 @@
     "lint:fix": "eslint . --fix",
     "typecheck": "tsc --noEmit",
     "vscode:prepublish": "npm run build",
-    "publish": "vsce publish --no-dependencies",
-    "package": "vsce package --no-dependencies",
+    "publish": "npx @vscode/vsce publish --no-dependencies",
+    "package": "npx @vscode/vsce package --no-dependencies",
     "release": "npx bumpp"
   },
   "nano-staged": {
     "*": "eslint --fix"
   },
   "devDependencies": {
-    "@types/node": "^25.2.2",
+    "@types/node": "catalog:dev",
+    "@types/semver": "catalog:dev",
     "@types/vscode": "1.101.0",
-    "@vida0905/eslint-config": "^2.10.0",
-    "@vscode/vsce": "^3.7.1",
-    "baseline-browser-mapping": "^2.9.19",
-    "eslint": "^9.39.2",
-    "fast-npm-meta": "^1.2.1",
-    "husky": "^9.1.7",
-    "jest-mock-vscode": "^4.10.0",
-    "jsonc-parser": "^3.3.1",
-    "module-replacements": "^2.11.0",
-    "nano-staged": "^0.9.0",
-    "ofetch": "^2.0.0-alpha.3",
-    "perfect-debounce": "^2.1.0",
-    "reactive-vscode": "^1.0.0-beta.2",
-    "tsdown": "^0.20.3",
-    "typescript": "^5.9.3",
-    "vitest": "^4.0.18",
-    "vscode-ext-gen": "1.3.0",
-    "vscode-uri": "^3.1.0",
-    "yaml": "^2.8.2"
+    "@vida0905/eslint-config": "catalog:dev",
+    "eslint": "catalog:dev",
+    "fast-npm-meta": "catalog:inline",
+    "husky": "catalog:dev",
+    "jest-mock-vscode": "catalog:test",
+    "jsonc-parser": "catalog:inline",
+    "module-replacements": "catalog:test",
+    "msw": "catalog:test",
+    "nano-staged": "catalog:dev",
+    "ofetch": "catalog:inline",
+    "perfect-debounce": "catalog:inline",
+    "reactive-vscode": "catalog:inline",
+    "semver": "catalog:inline",
+    "tsdown": "catalog:dev",
+    "typescript": "catalog:dev",
+    "vite-tsconfig-paths": "catalog:test",
+    "vitest": "catalog:test",
+    "vscode-ext-gen": "catalog:dev",
+    "yaml": "catalog:inline"
   }
 }

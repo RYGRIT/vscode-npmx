@@ -1,4 +1,5 @@
 import type { DependencyInfo, Extractor } from '#types/extractor'
+import type { Engines } from 'fast-npm-meta'
 import type { Node } from 'jsonc-parser'
 import type { TextDocument } from 'vscode'
 import { isInRange } from '#utils/ast'
@@ -73,6 +74,25 @@ export class PackageJsonExtractor implements Extractor<Node> {
     })
 
     return result
+  }
+
+  getEngines(root: Node): Engines | undefined {
+    const enginesNode = findNodeAtLocation(root, ['engines'])
+    if (enginesNode?.type !== 'object' || !enginesNode.children?.length)
+      return
+
+    let engines: Engines | undefined
+
+    for (const engineNode of enginesNode.children) {
+      const [nameNode, rangeNode] = engineNode.children ?? []
+      if (typeof nameNode?.value !== 'string' || typeof rangeNode?.value !== 'string')
+        continue
+
+      engines ??= {}
+      engines[nameNode.value] = rangeNode.value
+    }
+
+    return engines
   }
 
   getDependencyInfoByOffset(root: Node, offset: number) {

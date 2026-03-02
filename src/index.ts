@@ -1,23 +1,16 @@
 import type { ExtensionContext, Range, Uri } from 'vscode'
-import {
-  PACKAGE_JSON_BASENAME,
-  PACKAGE_JSON_PATTERN,
-  PNPM_WORKSPACE_BASENAME,
-  PNPM_WORKSPACE_PATTERN,
-  VERSION_TRIGGER_CHARACTERS,
-} from '#constants'
+import { VERSION_TRIGGER_CHARACTERS } from '#constants'
 import { debounce } from 'perfect-debounce'
 import { defineExtension, useCommands, watchEffect } from 'reactive-vscode'
-import { CodeActionKind, Disposable, languages, commands as vscodeCommands, window, workspace, WorkspaceEdit } from 'vscode'
+import { Disposable, languages, commands as vscodeCommands, window, workspace, WorkspaceEdit } from 'vscode'
 import { openFileInNpmx } from './commands/open-file-in-npmx'
 import { openInBrowser } from './commands/open-in-browser'
-import { PackageJsonExtractor } from './extractors/package-json'
-import { PnpmWorkspaceYamlExtractor } from './extractors/pnpm-workspace-yaml'
+import { extractorEntries } from './extractors'
 import { commands, displayName, version } from './generated-meta'
-import { UpgradeProvider } from './providers/code-actions/upgrade'
+import { useCodeActions } from './providers/code-actions'
 import { VersionCodeLensProvider } from './providers/code-lens/version'
 import { VersionCompletionItemProvider } from './providers/completion-item/version'
-import { registerDiagnosticCollection } from './providers/diagnostics'
+import { useDiagnostics } from './providers/diagnostics'
 import { UpgradeGutterProvider } from './providers/gutter/upgrade'
 import { NpmxHoverProvider } from './providers/hover/npmx'
 import { config, logger } from './state'
@@ -25,23 +18,13 @@ import { config, logger } from './state'
 export const { activate, deactivate } = defineExtension((context: ExtensionContext) => {
   logger.info(`${displayName} Activated, v${version}`)
 
-  const packageJsonExtractor = new PackageJsonExtractor()
-  const pnpmWorkspaceYamlExtractor = new PnpmWorkspaceYamlExtractor()
-
   watchEffect((onCleanup) => {
     if (!config.hover.enabled)
       return
 
-    const disposables = [
-      languages.registerHoverProvider(
-        { pattern: PACKAGE_JSON_PATTERN },
-        new NpmxHoverProvider(packageJsonExtractor),
-      ),
-      languages.registerHoverProvider(
-        { pattern: PNPM_WORKSPACE_PATTERN },
-        new NpmxHoverProvider(pnpmWorkspaceYamlExtractor),
-      ),
-    ]
+    const disposables = extractorEntries.map(({ pattern, extractor }) =>
+      languages.registerHoverProvider({ pattern }, new NpmxHoverProvider(extractor)),
+    )
 
     onCleanup(() => Disposable.from(...disposables).dispose())
   })
@@ -50,18 +33,13 @@ export const { activate, deactivate } = defineExtension((context: ExtensionConte
     if (config.completion.version === 'off')
       return
 
-    const disposables = [
+    const disposables = extractorEntries.map(({ pattern, extractor }) =>
       languages.registerCompletionItemProvider(
-        { pattern: PACKAGE_JSON_PATTERN },
-        new VersionCompletionItemProvider(packageJsonExtractor),
+        { pattern },
+        new VersionCompletionItemProvider(extractor),
         ...VERSION_TRIGGER_CHARACTERS,
       ),
-      languages.registerCompletionItemProvider(
-        { pattern: PNPM_WORKSPACE_PATTERN },
-        new VersionCompletionItemProvider(pnpmWorkspaceYamlExtractor),
-        ...VERSION_TRIGGER_CHARACTERS,
-      ),
-    ]
+    )
 
     onCleanup(() => Disposable.from(...disposables).dispose())
   })

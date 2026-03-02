@@ -3,6 +3,7 @@ import type { HoverProvider, Position, TextDocument } from 'vscode'
 import { SPACER } from '#constants'
 import { getPackageInfo } from '#utils/api/package'
 import { jsrPackageUrl, npmxDocsUrl, npmxPackageUrl } from '#utils/links'
+import { resolveExactVersion } from '#utils/package'
 import { isSupportedProtocol, parseVersion } from '#utils/version'
 import { Hover, MarkdownString } from 'vscode'
 
@@ -28,11 +29,11 @@ export class NpmxHoverProvider<T extends Extractor> implements HoverProvider {
       return
 
     const { name } = dep
-    const { protocol, semver } = parsed
+    const { protocol, version } = parsed
 
     if (protocol === 'jsr') {
       const jsrMd = new MarkdownString('', true)
-      const jsrUrl = jsrPackageUrl(name, semver)
+      const jsrUrl = jsrPackageUrl(name)
 
       jsrMd.isTrusted = true
 
@@ -59,14 +60,12 @@ export class NpmxHoverProvider<T extends Extractor> implements HoverProvider {
     const md = new MarkdownString('', true)
     md.isTrusted = true
 
-    const currentVersion = pkg.versionsMeta[semver]
-    if (currentVersion) {
-      if (currentVersion.provenance)
-        md.appendMarkdown(`[$(verified)${SPACER}Verified provenance](${npmxPackageUrl(name, semver)}#provenance)\n\n`)
-    }
+    const exactVersion = resolveExactVersion(pkg, version)
+    if (exactVersion && pkg.versionsMeta[exactVersion]?.provenance)
+      md.appendMarkdown(`[$(verified)${SPACER}Verified provenance](${npmxPackageUrl(name, version)}#provenance)\n\n`)
 
     const packageLink = `[$(package)${SPACER}View on npmx.dev](${npmxPackageUrl(name)})`
-    const docsLink = `[$(book)${SPACER}View docs on npmx.dev](${npmxDocsUrl(name, semver)})`
+    const docsLink = `[$(book)${SPACER}View docs on npmx.dev](${npmxDocsUrl(name, version)})`
 
     md.appendMarkdown(`${packageLink} | ${docsLink}`)
 

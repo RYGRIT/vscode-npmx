@@ -1,40 +1,46 @@
 import type { DependencyInfo } from '#types/extractor'
 import type { ParsedVersion } from '#utils/version'
 import type { DiagnosticRule, NodeDiagnosticInfo } from '..'
-import { UPGRADE_MESSAGE_PREFIX } from '#constants'
-import { formatVersion, getPrereleaseId, isSupportedProtocol, lt, parseVersion } from '#utils/version'
-import { DiagnosticSeverity } from 'vscode'
+import { npmxPackageUrl } from '#utils/links'
+import { formatUpgradeVersion } from '#utils/version'
+import gt from 'semver/functions/gt'
+import lte from 'semver/functions/lte'
+import prerelease from 'semver/functions/prerelease'
+import { DiagnosticSeverity, Uri } from 'vscode'
 
-function createUpgradeDiagnostic(dep: DependencyInfo, parsed: ParsedVersion, upgradeVersion: string): NodeDiagnosticInfo {
-  const target = formatVersion({ ...parsed, semver: upgradeVersion })
+function createUpgradeDiagnostic(dep: DependencyInfo, parsed: ParsedVersion, target: string): NodeDiagnosticInfo {
   return {
     node: dep.versionNode,
     severity: DiagnosticSeverity.Hint,
-    message: `${UPGRADE_MESSAGE_PREFIX}${target}`,
+    message: `New version available: ${formatUpgradeVersion(parsed, target)}`,
+    code: {
+      value: 'upgrade',
+      target: Uri.parse(npmxPackageUrl(dep.name, target)),
+    },
   }
 }
 
-export const checkUpgrade: DiagnosticRule = (dep, pkg) => {
-  const parsed = parseVersion(dep.version)
-  if (!parsed || !isSupportedProtocol(parsed.protocol))
+export const checkUpgrade: DiagnosticRule = ({ dep, pkg, parsed, exactVersion }) => {
+  if (!parsed || !exactVersion)
     return
 
-  const { semver } = parsed
-  const latest = pkg.distTags.latest
+  if (Object.hasOwn(pkg.distTags, exactVersion))
+    return
 
-  if (latest && lt(semver, latest))
+  const { latest } = pkg.distTags
+  if (gt(latest, exactVersion))
     return createUpgradeDiagnostic(dep, parsed, latest)
 
-  const currentPreId = getPrereleaseId(semver)
-  if (!currentPreId)
+  const currentPreId = prerelease(exactVersion)?.[0]
+  if (currentPreId == null)
     return
 
   for (const [tag, tagVersion] of Object.entries(pkg.distTags)) {
     if (tag === 'latest')
       continue
-    if (getPrereleaseId(tagVersion) !== currentPreId)
+    if (prerelease(tagVersion)?.[0] !== currentPreId)
       continue
-    if (!lt(semver, tagVersion))
+    if (lte(tagVersion, exactVersion))
       continue
 
     return createUpgradeDiagnostic(dep, parsed, tagVersion)
