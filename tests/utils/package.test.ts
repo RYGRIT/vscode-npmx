@@ -47,7 +47,7 @@ describe('resolveExactVersion', () => {
 })
 
 describe('getMaxSatisfying', () => {
-  it('should return undefined for wildcard and empty ranges', () => {
+  it('should return null for wildcard and empty ranges', () => {
     expect(getMaxSatisfying(['1.0.0'], '*', { latest: '1.0.0' })).toBeNull()
     expect(getMaxSatisfying(['1.0.0'], '   ', { latest: '1.0.0' })).toBeNull()
   })
