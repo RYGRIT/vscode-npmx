@@ -34,10 +34,10 @@ export function resolveExactVersion(pkg: PackageInfo, version: string) {
  */
 export function getMaxSatisfying(versions: string[], current: string, tags: Record<string, string>) {
   let version: string | null = null
-  let maxVersion: string | null = tags.latest
+  let maxVersion: string | null = tags.latest ?? null
 
   if (current === '*' || current.trim() === '')
-    return
+    return null
 
   if (!semver.validRange(current))
     return null

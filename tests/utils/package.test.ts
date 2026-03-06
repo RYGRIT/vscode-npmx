@@ -48,8 +48,8 @@ describe('resolveExactVersion', () => {
 
 describe('getMaxSatisfying', () => {
   it('should return undefined for wildcard and empty ranges', () => {
-    expect(getMaxSatisfying(['1.0.0'], '*', { latest: '1.0.0' })).toBeUndefined()
-    expect(getMaxSatisfying(['1.0.0'], '   ', { latest: '1.0.0' })).toBeUndefined()
+    expect(getMaxSatisfying(['1.0.0'], '*', { latest: '1.0.0' })).toBeNull()
+    expect(getMaxSatisfying(['1.0.0'], '   ', { latest: '1.0.0' })).toBeNull()
   })
 
   it('should return null for invalid ranges', () => {
@@ -58,5 +58,17 @@ describe('getMaxSatisfying', () => {
 
   it('should fall back to the highest satisfying version when latest does not satisfy the range', () => {
     expect(getMaxSatisfying(['1.0.0', '1.1.0', '2.0.0'], '^1.0.0', { latest: '2.0.0' })).toBe('1.1.0')
+  })
+
+  it('should handle missing latest tag gracefully', () => {
+    expect(getMaxSatisfying(['1.0.0', '1.1.0'], '^1.0.0', {})).toBe('1.1.0')
+  })
+
+  it('should return null when no versions are available', () => {
+    expect(getMaxSatisfying([], '^1.0.0', { latest: '1.0.0' })).toBeNull()
+  })
+
+  it('should return null when the range has no matching version', () => {
+    expect(getMaxSatisfying(['1.0.0'], '^2.0.0', { latest: '1.0.0' })).toBeNull()
   })
 })
