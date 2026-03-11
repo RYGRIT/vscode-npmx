@@ -26,7 +26,6 @@ export class CatalogCompletionItemProvider implements CompletionItemProvider {
     for (const name in catalogs) {
       const item = new CompletionItem(name, CompletionItemKind.EnumMember)
 
-      item.range = offsetRangeToRange(document, info.specRange)
       item.insertText = name
 
       items.push(item)
