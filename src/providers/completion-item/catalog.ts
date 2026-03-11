@@ -1,6 +1,5 @@
 import type { CompletionItemProvider, Position, TextDocument } from 'vscode'
 import { getResolvedDependencyByOffset, getWorkspaceContext } from '#core/workspace'
-import { offsetRangeToRange } from '#utils/ast'
 import { CompletionItem, CompletionItemKind } from 'vscode'
 
 export class CatalogCompletionItemProvider implements CompletionItemProvider {
