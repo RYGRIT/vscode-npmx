@@ -67,6 +67,10 @@ class WorkspaceContext {
     this.#invalidatedPaths.add(path)
   }
 
+  async getCatalogs(): Promise<CatalogsInfo | undefined> {
+    return this.#catalogs?.promise
+  }
+
   #createResolvedDependencyInfo(dependency: DependencyInfo, catalogs?: CatalogsInfo): ResolvedDependencyInfo {
     const resolution = resolveDependencySpec(dependency.rawName, dependency.rawSpec, catalogs)
 
@@ -110,7 +114,7 @@ class WorkspaceContext {
 
     const [info, catalogs] = await Promise.all([
       getDocumentText(uri).then((text) => extractor.getPackageManifestInfo(text)),
-      this.#catalogs!.promise,
+      this.#catalogs?.promise ?? Promise.resolve(undefined),
     ])
 
     if (!info)
