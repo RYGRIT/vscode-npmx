@@ -23,7 +23,7 @@ export class CatalogCompletionItemProvider implements CompletionItemProvider {
     const items: CompletionItem[] = []
 
     for (const name in catalogs) {
-      const item = new CompletionItem(name, CompletionItemKind.EnumMember)
+      const item = new CompletionItem(name, CompletionItemKind.Text)
 
       item.insertText = name
 
