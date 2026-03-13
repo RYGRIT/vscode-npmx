@@ -1,7 +1,9 @@
 catalog:
   lodash: 2.4.2
+  is-number: ^4.0.0
 catalogs:
   prod:
     '@deno/doc': jsr:^0.189.1
+    is-number: 5.0.0
   dev:
     is-number: ~7.0.0

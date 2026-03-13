@@ -20,16 +20,14 @@ export class CatalogCompletionItemProvider implements CompletionItemProvider {
     if (!catalogs)
       return
 
-    const items: CompletionItem[] = []
+    return Object.entries(catalogs).flatMap(([name, catalog]) => {
+      const version = catalog[info.resolvedName]
+      if (!version)
+        return []
 
-    for (const name in catalogs) {
-      const item = new CompletionItem(name, CompletionItemKind.Text)
-
-      item.insertText = name
-
-      items.push(item)
-    }
-
-    return items
+      const item = new CompletionItem(name, CompletionItemKind.Value)
+      item.detail = version
+      return [item]
+    })
   }
 }

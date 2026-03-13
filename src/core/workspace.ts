@@ -114,7 +114,7 @@ class WorkspaceContext {
 
     const [info, catalogs] = await Promise.all([
       getDocumentText(uri).then((text) => extractor.getPackageManifestInfo(text)),
-      this.#catalogs?.promise ?? Promise.resolve(undefined),
+      this.#catalogs?.promise,
     ])
 
     if (!info)
