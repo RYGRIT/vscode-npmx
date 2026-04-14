@@ -1,5 +1,5 @@
 import type { Connection, LanguageServer } from '@volar/language-server'
-import type { DependencyInfo, WorkspaceAdapter } from 'npmx-language-core/workspace'
+import type { DependencyInfo, PackageManager, WorkspaceAdapter } from 'npmx-language-core/workspace'
 import type { IWorkspaceState } from 'npmx-language-service/types'
 import type { GetPackageManagerRequest } from 'npmx-shared/protocol'
 import { access, readFile } from 'node:fs/promises'
@@ -10,6 +10,7 @@ import { WorkspaceContext } from 'npmx-language-core/workspace'
 import { GET_PACKAGE_MANAGER_METHOD } from 'npmx-shared/protocol'
 import { defineCachedFunction } from 'ocache'
 import { URI } from 'vscode-uri'
+import { mergeResolvedDependencies } from './merge-resolved-dependencies'
 
 const getPackageManagerRequestType = new RequestType<
   GetPackageManagerRequest.ParamsType,
@@ -37,10 +38,10 @@ function createLanguageServerAdapter(folderUri: URI, connection: Connection, ser
       }
     },
 
-    async detectPackageManager(rootPath): Promise<'npm' | 'pnpm' | 'yarn'> {
+    async detectPackageManager(): Promise<PackageManager> {
       try {
         const result = await connection.sendRequest(getPackageManagerRequestType, {
-          uri: rootPath,
+          uri: folderUri.toString(),
         })
         return result || 'npm'
       } catch {
@@ -95,7 +96,7 @@ export class WorkspaceState implements IWorkspaceState {
     this.#connection.console.info(`[workspace-context] invalidate dependencies cache: ${uri.path}`)
 
     const isRoot = uri.path === `${ctx.rootPath}/${PACKAGE_JSON_BASENAME}`
-    if (isRoot || isWorkspaceFile(uri.path))
+    if (isRoot || uri.path === ctx.workspaceFilePath || isWorkspaceFile(uri.path))
       await ctx.loadWorkspace()
   }
 
@@ -150,17 +151,27 @@ export class WorkspaceState implements IWorkspaceState {
     return await this.#getWorkspaceContextByFolder(folderUri)
   }
 
+  // TODO: For Bun workspaces, the root package.json serves as both the package
+  // manifest and the workspace catalog file. Currently, when this file is opened,
+  // only the package manifest dependencies are returned (via `loadPackageManifestInfo`).
+  // Catalog entries defined in `catalog`/`catalogs` won't receive hover tooltips
+  // or diagnostics. Consider merging results from both loaders for Bun's root
+  // package.json so catalog entries also get full LSP features.
   async getResolvedDependencies(uriString: string): Promise<DependencyInfo[] | undefined> {
     const ctx = await this.getWorkspaceContext(uriString)
     if (!ctx)
       return
 
     const uri = URI.parse(uriString)
-    return (
-      isPackageManifest(uri.path)
-        ? await ctx.loadPackageManifestInfo(uri.path)
-        : await ctx.loadWorkspaceFileInfo(uri.path)
-    )?.dependencies
+    if (!isPackageManifest(uri.path))
+      return (await ctx.loadWorkspaceFileInfo(uri.path))?.dependencies
+
+    const manifestDependencies = (await ctx.loadPackageManifestInfo(uri.path))?.dependencies
+    if (ctx.packageManager !== 'bun' || ctx.workspaceFilePath !== uri.path)
+      return manifestDependencies
+
+    const workspaceDependencies = (await ctx.loadWorkspaceFileInfo(uri.path))?.dependencies
+    return mergeResolvedDependencies(manifestDependencies, workspaceDependencies)
   }
 
   async getResolvedDependenciesForContainingPackage(uriString: string): Promise<DependencyInfo[] | undefined> {

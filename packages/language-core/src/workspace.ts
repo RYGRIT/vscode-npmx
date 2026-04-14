@@ -8,16 +8,11 @@ import type {
   WorkspaceCatalogInfo,
 } from './types'
 import { defineCachedFunction } from 'ocache'
-import { dirname, join } from 'pathe'
+import { dirname } from 'pathe'
 import { getPackageInfo } from './api/package'
 import { PACKAGE_JSON_BASENAME, PNPM_WORKSPACE_BASENAME, YARN_WORKSPACE_BASENAME } from './constants'
 import { getExtractor } from './extractors'
 import { isPackageManifest, isWorkspaceFile, lazyInit, resolveDependencySpec, resolveExactVersion } from './utils'
-
-const workspaceFileMapping: Record<'pnpm' | 'yarn', string> = {
-  pnpm: PNPM_WORKSPACE_BASENAME,
-  yarn: YARN_WORKSPACE_BASENAME,
-}
 
 export interface DependencyInfo extends ExtractedDependencyInfo, Omit<ResolvedDependencyInfo, keyof ExtractedDependencyInfo> {
   packageInfo: () => Promise<PackageInfo | null>
@@ -28,12 +23,33 @@ export type WithDependencyInfo<T> = Omit<T, 'dependencies'> & {
   dependencies: DependencyInfo[]
 }
 
-export type PackageManager = 'npm' | 'pnpm' | 'yarn'
+export type PackageManager = 'bun' | 'npm' | 'pnpm' | 'yarn'
 
 export interface WorkspaceAdapter {
   readFile: (path: string) => Promise<string>
   fileExists: (path: string) => Promise<boolean>
   detectPackageManager: (rootPath: string) => Promise<PackageManager>
+}
+
+function getWorkspaceFileBasename(packageManager: PackageManager): string | undefined {
+  switch (packageManager) {
+    case 'bun':
+      return PACKAGE_JSON_BASENAME
+    case 'pnpm':
+      return PNPM_WORKSPACE_BASENAME
+    case 'yarn':
+      return YARN_WORKSPACE_BASENAME
+  }
+}
+
+function isWorkspaceMetadataPath(path: string, workspaceFilePath?: string): boolean {
+  return path === workspaceFilePath || isWorkspaceFile(path)
+}
+
+const TRAILING_SLASHES_RE = /\/+$/
+
+function joinUriPath(dir: string, basename: string): string {
+  return `${dir.replace(TRAILING_SLASHES_RE, '')}/${basename}`
 }
 
 function createResolvedDependencyInfo(
@@ -90,9 +106,11 @@ export class WorkspaceContext {
   async loadWorkspace() {
     this.#catalogs = Promise.withResolvers()
     this.packageManager = await this.adapter.detectPackageManager(this.rootPath)
+    this.workspaceFilePath = undefined
 
-    if (this.packageManager !== 'npm') {
-      this.workspaceFilePath = join(this.rootPath, workspaceFileMapping[this.packageManager])
+    const workspaceFilename = getWorkspaceFileBasename(this.packageManager)
+    if (workspaceFilename) {
+      this.workspaceFilePath = joinUriPath(this.rootPath, workspaceFilename)
       this.#catalogs.resolve(
         await this.adapter.fileExists(this.workspaceFilePath)
           ? (await this.loadWorkspaceFileInfo(this.workspaceFilePath))?.catalogs
@@ -143,7 +161,7 @@ export class WorkspaceContext {
     WithDependencyInfo<WorkspaceCatalogInfo> | undefined,
     [string]
   >(async (path) => {
-    if (!isWorkspaceFile(path))
+    if (!isWorkspaceMetadataPath(path, this.workspaceFilePath))
       return
 
     const extractor = getExtractor(path)
@@ -166,7 +184,7 @@ export class WorkspaceContext {
     let dir = dirname(path)
 
     while (dir === this.rootPath || dir.startsWith(`${this.rootPath}/`)) {
-      const manifestPath = join(dir, PACKAGE_JSON_BASENAME)
+      const manifestPath = joinUriPath(dir, PACKAGE_JSON_BASENAME)
       if (await this.adapter.fileExists(manifestPath))
         return manifestPath
 
@@ -183,7 +201,8 @@ export class WorkspaceContext {
   async invalidateDependencyInfo(path: string) {
     if (isPackageManifest(path))
       await this.loadPackageManifestInfo.invalidate(path)
-    else if (isWorkspaceFile(path))
+
+    if (isWorkspaceMetadataPath(path, this.workspaceFilePath))
       await this.loadWorkspaceFileInfo.invalidate(path)
   }
 }
