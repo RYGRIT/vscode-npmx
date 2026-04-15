@@ -60,6 +60,41 @@ describe('workspaceContext', () => {
     expect(checkedPaths).toEqual(['/repo/pnpm-workspace.yaml'])
   })
 
+  it('ignores nested workspace files once the root workspace file path is known', async () => {
+    const readPaths: string[] = []
+    const files = new Map<string, string>([
+      ['/repo/pnpm-workspace.yaml', `catalog:
+  lodash: ^4.17.21
+`],
+      ['/repo/packages/app/pnpm-workspace.yaml', `catalog:
+  semver: ^7.7.2
+`],
+    ])
+
+    const adapter: WorkspaceAdapter = {
+      async readFile(path) {
+        readPaths.push(path)
+        const content = files.get(path)
+        if (!content)
+          throw new Error(`Unexpected read: ${path}`)
+        return content
+      },
+      async fileExists(path) {
+        return files.has(path)
+      },
+      async detectPackageManager() {
+        return 'pnpm'
+      },
+    }
+
+    const ctx = await WorkspaceContext.create('/repo', adapter)
+    const info = await ctx.loadWorkspaceFileInfo('/repo/packages/app/pnpm-workspace.yaml')
+
+    expect(ctx.workspaceFilePath).toBe('/repo/pnpm-workspace.yaml')
+    expect(info).toBeUndefined()
+    expect(readPaths).toEqual(['/repo/pnpm-workspace.yaml'])
+  })
+
   it('preserves the leading slash for windows-style uri paths', async () => {
     const checkedPaths: string[] = []
 

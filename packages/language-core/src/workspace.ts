@@ -43,7 +43,9 @@ function getWorkspaceFileBasename(packageManager: PackageManager): string | unde
 }
 
 function isWorkspaceMetadataPath(path: string, workspaceFilePath?: string): boolean {
-  return path === workspaceFilePath || isWorkspaceFile(path)
+  return workspaceFilePath
+    ? path === workspaceFilePath
+    : isWorkspaceFile(path)
 }
 
 const TRAILING_SLASHES_RE = /\/+$/

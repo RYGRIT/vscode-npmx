@@ -5,7 +5,7 @@ import type { GetPackageManagerRequest } from 'npmx-shared/protocol'
 import { access, readFile } from 'node:fs/promises'
 import { RequestType } from '@volar/language-server'
 import { DEPENDENCY_FILE_GLOB, PACKAGE_JSON_BASENAME } from 'npmx-language-core/constants'
-import { isDependencyFile, isPackageManifest, isWorkspaceFile } from 'npmx-language-core/utils'
+import { isDependencyFile, isPackageManifest } from 'npmx-language-core/utils'
 import { WorkspaceContext } from 'npmx-language-core/workspace'
 import { GET_PACKAGE_MANAGER_METHOD } from 'npmx-shared/protocol'
 import { defineCachedFunction } from 'ocache'
@@ -96,7 +96,7 @@ export class WorkspaceState implements IWorkspaceState {
     this.#connection.console.info(`[workspace-context] invalidate dependencies cache: ${uri.path}`)
 
     const isRoot = uri.path === `${ctx.rootPath}/${PACKAGE_JSON_BASENAME}`
-    if (isRoot || uri.path === ctx.workspaceFilePath || isWorkspaceFile(uri.path))
+    if (isRoot || uri.path === ctx.workspaceFilePath)
       await ctx.loadWorkspace()
   }
 
