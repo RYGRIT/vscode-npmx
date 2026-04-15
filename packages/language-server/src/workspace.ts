@@ -151,12 +151,6 @@ export class WorkspaceState implements IWorkspaceState {
     return await this.#getWorkspaceContextByFolder(folderUri)
   }
 
-  // TODO: For Bun workspaces, the root package.json serves as both the package
-  // manifest and the workspace catalog file. Currently, when this file is opened,
-  // only the package manifest dependencies are returned (via `loadPackageManifestInfo`).
-  // Catalog entries defined in `catalog`/`catalogs` won't receive hover tooltips
-  // or diagnostics. Consider merging results from both loaders for Bun's root
-  // package.json so catalog entries also get full LSP features.
   async getResolvedDependencies(uriString: string): Promise<DependencyInfo[] | undefined> {
     const ctx = await this.getWorkspaceContext(uriString)
     if (!ctx)
