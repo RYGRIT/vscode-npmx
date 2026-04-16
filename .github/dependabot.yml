@@ -5,6 +5,10 @@ updates:
     schedule:
       interval: weekly
 
+  - package-ecosystem: npm
+    directory: /
+    schedule:
+      interval: weekly
     # Ignore all dependency manifests in the `playground` directory.
     exclude-paths:
       - playground/**
