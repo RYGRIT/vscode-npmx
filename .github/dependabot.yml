@@ -9,6 +9,18 @@ updates:
     directory: /
     schedule:
       interval: weekly
-    # Ignore all dependency manifests in the `playground` directory.
+    # exclude-paths only prevents version updates, not security updates.
     exclude-paths:
       - playground/**
+
+  # Playground directories use intentionally outdated/vulnerable versions
+  # to test the extension's diagnostics features.
+  # `ignore` is required because `exclude-paths` does NOT prevent security updates.
+  - package-ecosystem: npm
+    directories:
+      - playground/**
+    schedule:
+      interval: weekly
+    ignore:
+      - dependency-name: "*"
+
