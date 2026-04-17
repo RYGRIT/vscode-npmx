@@ -22,5 +22,5 @@ updates:
     schedule:
       interval: weekly
     ignore:
-      - dependency-name: "*"
+      - dependency-name: '*'
 
