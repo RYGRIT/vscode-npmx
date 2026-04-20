@@ -50,7 +50,7 @@ function createLanguageServerAdapter(folderUri: URI, connection: Connection, ser
   }
 }
 
-function mergeResolvedDependencies(
+export function mergeResolvedDependencies(
   manifestDependencies?: DependencyInfo[],
   workspaceDependencies?: DependencyInfo[],
 ): DependencyInfo[] | undefined {

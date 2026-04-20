@@ -1,6 +1,6 @@
 import type { DependencyInfo } from 'npmx-language-core/workspace'
 import { describe, expect, it } from 'vitest'
-import { mergeResolvedDependencies } from './merge-resolved-dependencies'
+import { mergeResolvedDependencies } from './workspace'
 
 function createDependency(rawName: string): DependencyInfo {
   return {
