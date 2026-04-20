@@ -37,6 +37,9 @@ catalogs:
       specifier: ^1.6.0
       version: 1.6.0
   inline:
+    '@types/path-browserify':
+      specifier: ^1.0.1
+      version: 1.0.3
     fast-npm-meta:
       specifier: ^1.5.0
       version: 1.5.0
@@ -49,6 +52,9 @@ catalogs:
     ofetch:
       specifier: ^2.0.0-alpha.3
       version: 2.0.0-alpha.3
+    path-browserify:
+      specifier: ^1.0.1
+      version: 1.0.1
     pathe:
       specifier: ^2.0.3
       version: 2.0.3
@@ -183,6 +189,9 @@ importers:
         specifier: catalog:inline
         version: 7.7.4
     devDependencies:
+      '@types/path-browserify':
+        specifier: catalog:inline
+        version: 1.0.3
       fast-npm-meta:
         specifier: catalog:inline
         version: 1.5.0
@@ -192,6 +201,9 @@ importers:
       module-replacements:
         specifier: catalog:test
         version: 2.11.0
+      path-browserify:
+        specifier: catalog:inline
+        version: 1.0.1
       pathe:
         specifier: catalog:inline
         version: 2.0.3
@@ -792,6 +804,9 @@ packages:
 
   '@types/node@25.6.0':
     resolution: {integrity: sha512-+qIYRKdNYJwY3vRCZMdJbPLJAtGjQBudzZzdzwQYkEPQd+PJGixUL5QfvCLDaULoLv+RhT3LDkwEfKaAkgSmNQ==}
+
+  '@types/path-browserify@1.0.3':
+    resolution: {integrity: sha512-ZmHivEbNCBtAfcrFeBCiTjdIc2dey0l7oCGNGpSuRTy8jP6UVND7oUowlvDujBy8r2Hoa8bfFUOCiPWfmtkfxw==}
 
   '@types/semver@7.7.1':
     resolution: {integrity: sha512-FmgJfu+MOcQ370SD0ev7EI8TlCAfKYU+B4m5T3yXc1CiRN94g/SZPtsCkk506aUDtlMnFZvasDwHHUcZUEaYuA==}
@@ -2964,6 +2979,8 @@ snapshots:
   '@types/node@25.6.0':
     dependencies:
       undici-types: 7.19.2
+
+  '@types/path-browserify@1.0.3': {}
 
   '@types/semver@7.7.1': {}
 

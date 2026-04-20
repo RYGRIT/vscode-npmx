@@ -18,10 +18,12 @@ catalogs:
     vite: ^8.0.8
     vscode-ext-gen: ^1.6.0
   inline:
+    '@types/path-browserify': ^1.0.1
     fast-npm-meta: ^1.5.0
     jsonc-parser: ^3.3.1
     ocache: ^0.1.4
     ofetch: ^2.0.0-alpha.3
+    path-browserify: ^1.0.1
     pathe: ^2.0.3
     reactive-vscode: ^1.0.0
     semver: ^7.7.4

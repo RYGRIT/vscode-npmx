@@ -8,6 +8,7 @@ import type {
   WorkspaceCatalogInfo,
 } from './types'
 import { defineCachedFunction } from 'ocache'
+import path from 'path-browserify'
 import { dirname } from 'pathe'
 import { getPackageInfo } from './api/package'
 import { PACKAGE_JSON_BASENAME, PNPM_WORKSPACE_BASENAME, YARN_WORKSPACE_BASENAME } from './constants'
@@ -46,12 +47,6 @@ function isWorkspaceMetadataPath(path: string, workspaceFilePath?: string): bool
   return workspaceFilePath
     ? path === workspaceFilePath
     : isWorkspaceFile(path)
-}
-
-const TRAILING_SLASHES_RE = /\/+$/
-
-function joinUriPath(dir: string, basename: string): string {
-  return `${dir.replace(TRAILING_SLASHES_RE, '')}/${basename}`
 }
 
 function createResolvedDependencyInfo(
@@ -112,7 +107,7 @@ export class WorkspaceContext {
 
     const workspaceFilename = getWorkspaceFileBasename(this.packageManager)
     if (workspaceFilename) {
-      this.workspaceFilePath = joinUriPath(this.rootPath, workspaceFilename)
+      this.workspaceFilePath = path.posix.join(this.rootPath, workspaceFilename)
       this.#catalogs.resolve(
         await this.adapter.fileExists(this.workspaceFilePath)
           ? (await this.loadWorkspaceFileInfo(this.workspaceFilePath))?.catalogs
@@ -182,11 +177,11 @@ export class WorkspaceContext {
     }
   }, this.#cacheOptions)
 
-  async findNearestPackageManifestPath(path: string): Promise<string | undefined> {
-    let dir = dirname(path)
+  async findNearestPackageManifestPath(packageManifestPath: string): Promise<string | undefined> {
+    let dir = dirname(packageManifestPath)
 
     while (dir === this.rootPath || dir.startsWith(`${this.rootPath}/`)) {
-      const manifestPath = joinUriPath(dir, PACKAGE_JSON_BASENAME)
+      const manifestPath = path.posix.join(dir, PACKAGE_JSON_BASENAME)
       if (await this.adapter.fileExists(manifestPath))
         return manifestPath
 
