@@ -10,7 +10,6 @@ import { WorkspaceContext } from 'npmx-language-core/workspace'
 import { GET_PACKAGE_MANAGER_METHOD } from 'npmx-shared/protocol'
 import { defineCachedFunction } from 'ocache'
 import { URI } from 'vscode-uri'
-import { mergeResolvedDependencies } from './merge-resolved-dependencies'
 
 const getPackageManagerRequestType = new RequestType<
   GetPackageManagerRequest.ParamsType,
@@ -49,6 +48,16 @@ function createLanguageServerAdapter(folderUri: URI, connection: Connection, ser
       }
     },
   }
+}
+
+function mergeResolvedDependencies(
+  manifestDependencies?: DependencyInfo[],
+  workspaceDependencies?: DependencyInfo[],
+): DependencyInfo[] | undefined {
+  if (manifestDependencies && workspaceDependencies)
+    return [...manifestDependencies, ...workspaceDependencies]
+
+  return manifestDependencies ?? workspaceDependencies
 }
 
 export class WorkspaceState implements IWorkspaceState {
