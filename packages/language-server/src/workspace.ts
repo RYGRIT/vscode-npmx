@@ -165,6 +165,9 @@ export class WorkspaceState implements IWorkspaceState {
       depPromises.push(ctx.loadWorkspaceFileInfo(uri.path).then((info) => info?.dependencies ?? []))
     }
 
+    if (!depPromises.length)
+      return
+
     const results = await Promise.all(depPromises)
     return results.flat()
   }
