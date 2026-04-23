@@ -157,20 +157,16 @@ export class WorkspaceState implements IWorkspaceState {
 
     const uri = URI.parse(uriString)
 
+    const depPromises: Promise<DependencyInfo[]>[] = []
     if (isPackageManifest(uri.path)) {
-      const manifestDeps = (await ctx.loadPackageManifestInfo(uri.path))?.dependencies
-      if (!ctx.isWorkspaceFile(uri.path))
-        return manifestDeps
-
-      const workspaceDeps = (await ctx.loadWorkspaceFileInfo(uri.path))?.dependencies
-      return [...manifestDeps ?? [], ...workspaceDeps ?? []]
+      depPromises.push(ctx.loadPackageManifestInfo(uri.path).then((info) => info?.dependencies ?? []))
+    }
+    if (ctx.isWorkspaceFile(uri.path)) {
+      depPromises.push(ctx.loadWorkspaceFileInfo(uri.path).then((info) => info?.dependencies ?? []))
     }
 
-    if (!ctx.isWorkspaceFile(uri.path))
-      return
-
-    const workspaceDeps = (await ctx.loadWorkspaceFileInfo(uri.path))?.dependencies
-    return workspaceDeps
+    const results = await Promise.all(depPromises)
+    return results.flat()
   }
 
   async getResolvedDependenciesForContainingPackage(uriString: string): Promise<DependencyInfo[] | undefined> {
