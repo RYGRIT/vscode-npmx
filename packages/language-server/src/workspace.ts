@@ -50,16 +50,6 @@ function createLanguageServerAdapter(folderUri: URI, connection: Connection, ser
   }
 }
 
-export function mergeResolvedDependencies(
-  manifestDependencies?: DependencyInfo[],
-  workspaceDependencies?: DependencyInfo[],
-): DependencyInfo[] | undefined {
-  if (manifestDependencies && workspaceDependencies)
-    return [...manifestDependencies, ...workspaceDependencies]
-
-  return manifestDependencies ?? workspaceDependencies
-}
-
 export class WorkspaceState implements IWorkspaceState {
   #connection: Connection
   #server: LanguageServer
@@ -166,15 +156,20 @@ export class WorkspaceState implements IWorkspaceState {
       return
 
     const uri = URI.parse(uriString)
-    if (!isPackageManifest(uri.path))
-      return (await ctx.loadWorkspaceFileInfo(uri.path))?.dependencies
+    if (!ctx.isWorkspaceFile(uri.path))
+      return
 
-    const manifestDependencies = (await ctx.loadPackageManifestInfo(uri.path))?.dependencies
-    if (ctx.packageManager !== 'bun' || ctx.workspaceFilePath !== uri.path)
-      return manifestDependencies
+    if (isPackageManifest(uri.path)) {
+      const manifestDeps = (await ctx.loadPackageManifestInfo(uri.path))?.dependencies
+      if (ctx.packageManager !== 'bun')
+        return manifestDeps
 
-    const workspaceDependencies = (await ctx.loadWorkspaceFileInfo(uri.path))?.dependencies
-    return mergeResolvedDependencies(manifestDependencies, workspaceDependencies)
+      const workspaceDeps = (await ctx.loadWorkspaceFileInfo(uri.path))?.dependencies
+      return [...manifestDeps ?? [], ...workspaceDeps ?? []]
+    }
+
+    const workspaceDeps = (await ctx.loadWorkspaceFileInfo(uri.path))?.dependencies
+    return workspaceDeps
   }
 
   async getResolvedDependenciesForContainingPackage(uriString: string): Promise<DependencyInfo[] | undefined> {
