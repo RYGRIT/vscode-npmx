@@ -8,8 +8,7 @@ import type {
   WorkspaceCatalogInfo,
 } from './types'
 import { defineCachedFunction } from 'ocache'
-import path from 'path-browserify'
-import { dirname } from 'pathe'
+import { dirname, join } from 'path-browserify'
 import { getPackageInfo } from './api/package'
 import { PACKAGE_JSON_BASENAME, PNPM_WORKSPACE_BASENAME, YARN_WORKSPACE_BASENAME } from './constants'
 import { getExtractor } from './extractors'
@@ -107,7 +106,7 @@ export class WorkspaceContext {
 
     const workspaceFilename = getWorkspaceFileBasename(this.packageManager)
     if (workspaceFilename) {
-      this.workspaceFilePath = path.posix.join(this.rootPath, workspaceFilename)
+      this.workspaceFilePath = join(this.rootPath, workspaceFilename)
       this.#catalogs.resolve(
         await this.adapter.fileExists(this.workspaceFilePath)
           ? (await this.loadWorkspaceFileInfo(this.workspaceFilePath))?.catalogs
@@ -181,7 +180,7 @@ export class WorkspaceContext {
     let dir = dirname(packageManifestPath)
 
     while (dir === this.rootPath || dir.startsWith(`${this.rootPath}/`)) {
-      const manifestPath = path.posix.join(dir, PACKAGE_JSON_BASENAME)
+      const manifestPath = join(dir, PACKAGE_JSON_BASENAME)
       if (await this.adapter.fileExists(manifestPath))
         return manifestPath
 

@@ -9,6 +9,9 @@ catalogs:
     '@types/node':
       specifier: ^25.6.0
       version: 25.6.0
+    '@types/path-browserify':
+      specifier: ^1.0.3
+      version: 1.0.3
     '@types/semver':
       specifier: ^7.7.1
       version: 7.7.1
@@ -37,9 +40,6 @@ catalogs:
       specifier: ^1.6.0
       version: 1.6.0
   inline:
-    '@types/path-browserify':
-      specifier: ^1.0.1
-      version: 1.0.3
     fast-npm-meta:
       specifier: ^1.5.0
       version: 1.5.0
@@ -55,9 +55,6 @@ catalogs:
     path-browserify:
       specifier: ^1.0.1
       version: 1.0.1
-    pathe:
-      specifier: ^2.0.3
-      version: 2.0.3
     reactive-vscode:
       specifier: ^1.0.0
       version: 1.0.0
@@ -110,6 +107,9 @@ importers:
       '@types/node':
         specifier: catalog:dev
         version: 25.6.0
+      '@types/path-browserify':
+        specifier: catalog:dev
+        version: 1.0.3
       '@types/semver':
         specifier: catalog:dev
         version: 7.7.1
@@ -189,9 +189,6 @@ importers:
         specifier: catalog:inline
         version: 7.7.4
     devDependencies:
-      '@types/path-browserify':
-        specifier: catalog:inline
-        version: 1.0.3
       fast-npm-meta:
         specifier: catalog:inline
         version: 1.5.0
@@ -204,9 +201,6 @@ importers:
       path-browserify:
         specifier: catalog:inline
         version: 1.0.1
-      pathe:
-        specifier: catalog:inline
-        version: 2.0.3
       yaml:
         specifier: catalog:inline
         version: 2.8.3

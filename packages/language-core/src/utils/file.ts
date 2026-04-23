@@ -1,4 +1,4 @@
-import { basename } from 'pathe'
+import { basename } from 'path-browserify'
 import { PACKAGE_JSON_BASENAME, PNPM_WORKSPACE_BASENAME, YARN_WORKSPACE_BASENAME } from '../constants'
 
 const SUPPORTED_BASENAMES = new Set([

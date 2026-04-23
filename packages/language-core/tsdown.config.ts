@@ -26,7 +26,6 @@ export default defineConfig({
       'module-replacements',
       'ofetch',
       'path-browserify',
-      'pathe',
       'yaml',
     ],
   },

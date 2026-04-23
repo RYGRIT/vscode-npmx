@@ -33,6 +33,7 @@
   },
   "devDependencies": {
     "@types/node": "catalog:dev",
+    "@types/path-browserify": "catalog:dev",
     "@types/semver": "catalog:dev",
     "@typescript/native-preview": "catalog:dev",
     "@vida0905/eslint-config": "catalog:dev",
