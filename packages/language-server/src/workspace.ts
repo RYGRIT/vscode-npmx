@@ -37,10 +37,10 @@ function createLanguageServerAdapter(folderUri: URI, connection: Connection, ser
       }
     },
 
-    async detectPackageManager(): Promise<PackageManager> {
+    async detectPackageManager(rootPath): Promise<PackageManager> {
       try {
         const result = await connection.sendRequest(getPackageManagerRequestType, {
-          uri: folderUri.toString(),
+          uri: rootPath,
         })
         return result || 'npm'
       } catch {
@@ -105,7 +105,7 @@ export class WorkspaceState implements IWorkspaceState {
     this.#connection.console.info(`[workspace-context] invalidate dependencies cache: ${uri.path}`)
 
     const isRoot = uri.path === `${ctx.rootPath}/${PACKAGE_JSON_BASENAME}`
-    if (isRoot || uri.path === ctx.workspaceFilePath)
+    if (isRoot || ctx.isWorkspaceFile(uri.path))
       await ctx.loadWorkspace()
   }
 

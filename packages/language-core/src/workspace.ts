@@ -12,7 +12,7 @@ import { dirname, join } from 'path-browserify'
 import { getPackageInfo } from './api/package'
 import { PACKAGE_JSON_BASENAME, PNPM_WORKSPACE_BASENAME, YARN_WORKSPACE_BASENAME } from './constants'
 import { getExtractor } from './extractors'
-import { isPackageManifest, isWorkspaceFile, lazyInit, resolveDependencySpec, resolveExactVersion } from './utils'
+import { isPackageManifest, lazyInit, resolveDependencySpec, resolveExactVersion } from './utils'
 
 export interface DependencyInfo extends ExtractedDependencyInfo, Omit<ResolvedDependencyInfo, keyof ExtractedDependencyInfo> {
   packageInfo: () => Promise<PackageInfo | null>
@@ -40,12 +40,6 @@ function getWorkspaceFileBasename(packageManager: PackageManager): string | unde
     case 'yarn':
       return YARN_WORKSPACE_BASENAME
   }
-}
-
-function isWorkspaceMetadataPath(path: string, workspaceFilePath?: string): boolean {
-  return workspaceFilePath
-    ? path === workspaceFilePath
-    : isWorkspaceFile(path)
 }
 
 function createResolvedDependencyInfo(
@@ -97,6 +91,10 @@ export class WorkspaceContext {
     const ctx = new WorkspaceContext(rootPath, adapter)
     await ctx.loadWorkspace()
     return ctx
+  }
+
+  isWorkspaceFile(path: string) {
+    return path === this.workspaceFilePath
   }
 
   async loadWorkspace() {
@@ -157,7 +155,7 @@ export class WorkspaceContext {
     WithDependencyInfo<WorkspaceCatalogInfo> | undefined,
     [string]
   >(async (path) => {
-    if (!isWorkspaceMetadataPath(path, this.workspaceFilePath))
+    if (!this.isWorkspaceFile(path))
       return
 
     const extractor = getExtractor(path)
@@ -198,7 +196,7 @@ export class WorkspaceContext {
     if (isPackageManifest(path))
       await this.loadPackageManifestInfo.invalidate(path)
 
-    if (isWorkspaceMetadataPath(path, this.workspaceFilePath))
+    if (this.isWorkspaceFile(path))
       await this.loadWorkspaceFileInfo.invalidate(path)
   }
 }

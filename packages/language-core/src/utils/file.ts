@@ -14,8 +14,3 @@ export function isDependencyFile(path: string): boolean {
 export function isPackageManifest(path: string): path is `${string}/${typeof PACKAGE_JSON_BASENAME}` {
   return path.endsWith(`/${PACKAGE_JSON_BASENAME}`)
 }
-
-export function isWorkspaceFile(path: string): path is `${string}/${typeof PNPM_WORKSPACE_BASENAME}` | `${string}/${typeof YARN_WORKSPACE_BASENAME}` {
-  return path.endsWith(`/${PNPM_WORKSPACE_BASENAME}`)
-    || path.endsWith(`/${YARN_WORKSPACE_BASENAME}`)
-}
