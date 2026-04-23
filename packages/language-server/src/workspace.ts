@@ -156,17 +156,18 @@ export class WorkspaceState implements IWorkspaceState {
       return
 
     const uri = URI.parse(uriString)
-    if (!ctx.isWorkspaceFile(uri.path))
-      return
 
     if (isPackageManifest(uri.path)) {
       const manifestDeps = (await ctx.loadPackageManifestInfo(uri.path))?.dependencies
-      if (ctx.packageManager !== 'bun')
+      if (!ctx.isWorkspaceFile(uri.path))
         return manifestDeps
 
       const workspaceDeps = (await ctx.loadWorkspaceFileInfo(uri.path))?.dependencies
       return [...manifestDeps ?? [], ...workspaceDeps ?? []]
     }
+
+    if (!ctx.isWorkspaceFile(uri.path))
+      return
 
     const workspaceDeps = (await ctx.loadWorkspaceFileInfo(uri.path))?.dependencies
     return workspaceDeps
